@@ -8,7 +8,20 @@ const userModel=require("./models/users");
 const bcrypt=require('bcrypt');
 const products=require("./data/products");
 const dbConnection=require("./config/db");
+app.use(express.urlencoded({extended:true}));
+
+
+const paymentRoute=require("./routes/paymentroutes");
+
+app.use("/api",paymentRoute);
+
 dbConnection();
+
+const key=process.env.RAZORPAY_API_KEY;
+const secret=process.env.RAZORPAY_API_SECRET;
+
+
+
 
 const port=process.env.PORT;
 
@@ -111,6 +124,19 @@ app.post("/cart", async (req, res) => {
 });
 
 
+app.get("/getUser",async (req,res)=>{
+  const { name } = req.query; 
+   try {
+    const user = await userModel.findOne({ name });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+})
+
+
 app.post("/getCart", async (req, res) => {
   const { name } = req.body;
 
@@ -179,3 +205,5 @@ app.post("/updateCart", async (req, res) => {
 app.listen(port,()=>{
     console.log(`Server started at port ${port}`);
 })
+
+

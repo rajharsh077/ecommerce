@@ -30,7 +30,8 @@ const userSchema=new mongoose.Schema({
 
        orders:[
             {
-               productId: { type: Number, required: true },
+               productId: { type: String, required: true },
+               name:String,
              quantity: { type: Number, required: true },
             price: { type: Number, required: true },
             date: { type: Date, default: Date.now }
