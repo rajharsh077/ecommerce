@@ -28,6 +28,10 @@ const Params = () => {
     fetchProducts();
   }, []);
 
+  const orderPage=()=>{
+       navigate(`/${name}/orders`);
+  }
+
   const handleQuantityChange = (productId, value) => {
     if (value < 1) return; // don't allow zero or negative
     setQuantities(prev => ({ ...prev, [productId]: value }));
@@ -63,6 +67,14 @@ const Params = () => {
         >
           Go to Cart
         </button>
+      </div>
+
+      <div className="text-right mb-6">
+  <button onClick={orderPage}
+    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+  >
+    View My Orders
+  </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -109,5 +121,6 @@ const Params = () => {
     </div>
   );
 };
+
 
 export default Params;

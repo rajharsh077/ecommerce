@@ -201,6 +201,19 @@ app.post("/updateCart", async (req, res) => {
 });
 
 
+app.get("/:name/orders",async(req,res)=>{
+  const userName = req.params.name; 
+  try {
+    const user=await userModel.findOne({name:userName});
+    if(!user){
+      res.status(401).json({"message":"user not valid"});
+    }
+    res.json(user.orders);
+  } catch (error) {
+    console.log("error");
+  }
+})
+
 
 app.listen(port,()=>{
     console.log(`Server started at port ${port}`);

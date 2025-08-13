@@ -34,7 +34,8 @@ const userSchema=new mongoose.Schema({
                name:String,
              quantity: { type: Number, required: true },
             price: { type: Number, required: true },
-            date: { type: Date, default: Date.now }
+            date: { type: Date, default: Date.now },
+            deliveryPartner: { type: String, required: true }
             }
        ]
 

@@ -5,6 +5,10 @@ const Razorpay = require('razorpay');
 const userModel=require("../models/users");
 const crypto = require("crypto");
 
+const deliveryPartners = ["Ravi", "Anita", "John", "Priya", "Amit"];
+
+
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_API_KEY,
   key_secret: process.env.RAZORPAY_API_SECRET,
@@ -60,6 +64,7 @@ router.post("/payment-success",async(req,res)=>{
           name: item.name,
           quantity: item.quantity,
           price: item.price,
+          deliveryPartner:deliveryPartners[Math.floor(Math.random() * deliveryPartners.length)],
         }))
       );
   
