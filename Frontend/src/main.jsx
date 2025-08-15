@@ -17,6 +17,7 @@ import Cart from './components/Cart.jsx';
 import Order from './components/Order.jsx';
 
 
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
         path: ":name/orders",
         element: <Order />,
       },
+      
 
 
     ]

@@ -56,7 +56,7 @@ const Params = () => {
   return (
     <div className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded shadow-md">
       <h1 className="text-3xl font-semibold mb-6 text-center">
-        Welcome, <span className="text-blue-600">{name}</span>!
+        Welcome, <span className="text-blue-600">{name} Ji</span>!
       </h1>
 
       {/* Go to Cart Button */}

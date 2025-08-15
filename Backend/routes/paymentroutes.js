@@ -58,22 +58,51 @@ router.post("/payment-success",async(req,res)=>{
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-    user.orders.push(
-        ...user.cart.map(item => ({
+      const purchasedItems = user.cart.map(item => ({
           productId: item.productId,
           name: item.name,
           quantity: item.quantity,
           price: item.price,
-          deliveryPartner:deliveryPartners[Math.floor(Math.random() * deliveryPartners.length)],
-        }))
-      );
+        }));
+
+       user.orders.push(...purchasedItems);
   
-      // Cart empty kar dena
       user.cart = [];
   
       await user.save();
+
+       setTimeout(async () => {
+      try {
+        const latestUser = await userModel.findById(user._id);
+        latestUser.orders.forEach(order => {
+          if (!order.deliveryPartner) {
+            order.deliveryPartner = deliveryPartners[Math.floor(Math.random() * deliveryPartners.length)];
+            order.status = "Out for Delivery";
+          }
+        });
+        await latestUser.save();
+        console.log("Delivery partner assigned after delay");
+      } catch (err) {
+        console.error("Auto-assign error:", err);
+      }
+    }, 15000);
+
+    setTimeout(async () => {
+      try {
+        const deliveredUser = await userModel.findById(user._id);
+        deliveredUser.orders.forEach(order => {
+          if (order.status === "Out for Delivery") {
+            order.status = "Delivered";
+          }
+        });
+        await deliveredUser.save();
+        console.log("Orders marked as Delivered after 1 hour");
+      } catch (err) {
+        console.error("Error updating to Delivered:", err);
+      }
+    }, 3600000); 
   
-      res.status(200).json({ message: "Payment successful, order placed" });
+      res.status(200).json({ message: "Payment successful, order placed", orderId: razorpay_order_id, items: purchasedItems });
   } catch (error) {
         console.error("Payment success error:", error);
     res.status(500).json({ message: "Server error" });

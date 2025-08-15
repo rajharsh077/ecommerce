@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,Link } from "react-router-dom";
 import axios from "axios";
 
 
@@ -9,6 +9,11 @@ const Cart = () => {
   const [discountMessage, setDiscountMessage] = useState("");
   const [finalAmount, setFinalAmount] = useState(null);
   const [user, setuser] = useState({});
+
+  const [orderPlaced, setOrderPlaced] = useState(false); // track if order is placed
+  const [orderInfo, setOrderInfo] = useState(null);
+
+ 
 
   useEffect(() => {
   
@@ -114,14 +119,18 @@ const Cart = () => {
         order_id: order.id, // This is the order_id created in the backend
          handler: async function (response) {
     try {
-      await axios.post("http://localhost:3000/api/payment-success", {
+      const {data}=await axios.post("http://localhost:3000/api/payment-success", {
         razorpay_order_id: response.razorpay_order_id,
         razorpay_payment_id: response.razorpay_payment_id,
         razorpay_signature: response.razorpay_signature,
         name: user.name
       });
       setCart([]);
-      alert("Payment Successful! Your order has been placed.");
+      console.log(data);
+      setOrderInfo(data);
+      setOrderPlaced(true);
+      
+      
     } catch (err) {
       console.error("Error saving order:", err);
     }
@@ -143,6 +152,60 @@ const Cart = () => {
       alert("Payment failed. Please try again.");
     }
   };
+
+
+  if (orderPlaced) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 p-6">
+      <div className="bg-green-100 p-6 rounded-full mb-6 shadow-lg">
+        <svg
+          className="w-16 h-16 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h1 className="text-3xl font-bold text-green-700 mb-2">Order Placed Successfully! 🎉</h1>
+      <p className="text-gray-600 mb-4 text-center max-w-md">
+        Thank you for shopping with us, <span className="font-semibold">{name}</span>.
+      </p>
+      
+      {orderInfo && (
+        <div className="mb-4 w-full max-w-md">
+          <p className="text-gray-800">Order ID: {orderInfo.orderId}</p>
+          <h3 className="mt-2 font-semibold">Purchased Items:</h3>
+          <ul className="list-disc ml-5">
+            {orderInfo.items.map((item, idx) => (
+              <li key={idx}>
+                {item.name} - Qty: {item.quantity} - ₨{item.price}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex gap-4 mt-4">
+        <Link
+          to={`/${name}`}
+          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          Home
+        </Link>
+        <Link
+          to={`/${name}/orders`}
+          className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+        >
+          My Orders
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+
 
   return (
     <div className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded shadow-md">

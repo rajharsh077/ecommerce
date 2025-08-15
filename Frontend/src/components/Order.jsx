@@ -28,6 +28,7 @@ const Order = () => {
               <th>Price</th>
               <th>Date</th>
               <th>Delivery Partner</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -37,7 +38,8 @@ const Order = () => {
                 <td>{order.quantity}</td>
                 <td>{order.price}</td>
                 <td>{new Date(order.date).toLocaleString()}</td>
-                <td>{order.deliveryPartner}</td>
+                <td>{order.deliveryPartner ? order.deliveryPartner : "Not assigned yet"}</td>
+                <td>{order.status}</td>
               </tr>
             ))}
           </tbody>
