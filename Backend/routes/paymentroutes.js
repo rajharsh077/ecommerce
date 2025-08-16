@@ -4,6 +4,9 @@ const router = express.Router();
 const Razorpay = require('razorpay');
 const userModel=require("../models/users");
 const crypto = require("crypto");
+const cron = require("node-cron");
+const { sendOrderConfirmationEmail } = require("../utils/mailer");
+
 
 const deliveryPartners = ["Ravi", "Anita", "John", "Priya", "Amit"];
 
@@ -39,6 +42,7 @@ router.get("/getKey",(req,res)=>{
     return res.status(200).json({key:process.env.RAZORPAY_API_KEY});
 })
 
+
 router.post("/payment-success",async(req,res)=>{
 
   try {
@@ -71,36 +75,62 @@ router.post("/payment-success",async(req,res)=>{
   
       await user.save();
 
-       setTimeout(async () => {
-      try {
-        const latestUser = await userModel.findById(user._id);
-        latestUser.orders.forEach(order => {
-          if (!order.deliveryPartner) {
-            order.deliveryPartner = deliveryPartners[Math.floor(Math.random() * deliveryPartners.length)];
-            order.status = "Out for Delivery";
-          }
-        });
-        await latestUser.save();
-        console.log("Delivery partner assigned after delay");
-      } catch (err) {
-        console.error("Auto-assign error:", err);
-      }
-    }, 15000);
+      sendOrderConfirmationEmail(user.email, user.name, purchasedItems)
+      .then(() => console.log("✅ Confirmation email sent"))
+      .catch(err => console.error("❌ Email sending failed:", err));
 
-    setTimeout(async () => {
-      try {
-        const deliveredUser = await userModel.findById(user._id);
-        deliveredUser.orders.forEach(order => {
-          if (order.status === "Out for Delivery") {
-            order.status = "Delivered";
-          }
-        });
-        await deliveredUser.save();
-        console.log("Orders marked as Delivered after 1 hour");
-      } catch (err) {
-        console.error("Error updating to Delivered:", err);
+// CRON JOB: Assign delivery partner after 15 sec
+      cron.schedule("* * * * *", async () => {
+  const now = new Date();
+  const users = await userModel.find({ "orders.status": "Processing" });
+
+  for (let user of users) {
+    let updated = false;
+    user.orders.forEach(order => {
+      if (
+        order.status === "Processing" &&
+        now - new Date(order.date) >= 15000 // 15 sec
+      ) {
+        order.deliveryPartner =
+          deliveryPartners[Math.floor(Math.random() * deliveryPartners.length)];
+        order.status = "Out for Delivery";
+        updated = true;
       }
-    }, 3600000); 
+    });
+    if (updated) {
+      await user.save();
+      console.log("✅ Delivery partner assigned");
+    }
+  }
+});
+
+// CRON JOB: Mark orders as Delivered after 1 hour
+cron.schedule("* * * * *", async () => {
+  const now = new Date();
+  const users = await userModel.find({ "orders.status": "Out for Delivery" });
+
+  for (let user of users) {
+    let updated = false;
+    user.orders.forEach(order => {
+      if (
+        order.status === "Out for Delivery" &&
+        now - new Date(order.date) >= 3600000 && // 1 hour
+        !order.deliveredAt
+      ) {
+        order.status = "Delivered";
+        order.deliveredAt = new Date();
+        updated = true;
+      }
+    });
+    if (updated) {
+      await user.save();
+      console.log("✅ Orders marked as Delivered");
+    }
+  }
+});
+      
+
+    
   
       res.status(200).json({ message: "Payment successful, order placed", orderId: razorpay_order_id, items: purchasedItems });
   } catch (error) {

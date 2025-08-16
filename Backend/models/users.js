@@ -36,7 +36,8 @@ const userSchema=new mongoose.Schema({
             price: { type: Number, required: true },
             date: { type: Date, default: Date.now },
             deliveryPartner: { type: String,default:null },
-            status: { type: String, default: "Processing" }
+            status: { type: String, default: "Processing" },
+            deliveredAt: { type: Date, default: null }
             }
        ]
 
